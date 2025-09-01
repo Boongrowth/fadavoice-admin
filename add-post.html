@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Panel - Add Post</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+  body {
+      background-color: #f8f9fa;
+    }
+    .preview img { max-width: 100%; height: auto; margin-top: 10px; border-radius: 5px; }
+    .notification { position: fixed; top: 20px; right: 20px; padding: 15px; border-radius: 5px; color: white; display: none; z-index: 1050; }
+    .notification.success { background-color: #28a745; }
+    .notification.error { background-color: #dc3545; }
+    
+    .navbar-brand {
+      font-weight: bold;
+    }
+    .container {
+      max-width: 800px;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">Admin Dashboard</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNavbar">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="adminNavbar">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link" href="dashboard.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="#">Posts</a></li>
+          <li class="nav-item"><a class="nav-link active" href="categories.html">Categories</a></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Admin Actions</a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#">Add Admin</a></li>
+              <li><a class="dropdown-item" href="#">Add Profile</a></li>
+              <li><a class="dropdown-item" href="#">Settings</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-danger" href="#">Logout</a></li>
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Posts Actions</a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#">Add Post</a></li>
+              <li><a class="dropdown-item" href="#">Edit Post</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Add Post Form -->
+  <div class="container">
+    <div class="card shadow-lg">
+          <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fa fa-plus-circle"></i> Add New Post</h5>
+      </div>
+        <div class="card-body">
+    <h2 class="mb-4">Post a News Article</h2>
+    <form id="newsForm">
+        <div class="mb-3">
+      <input type="hidden" id="postId" />
+
+      <div class="mb-3">
+        <label class="form-label">Title</label>
+        <input type="text" id="title" class="form-control" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Content</label>
+        <textarea id="content" class="form-control" rows="6" required></textarea>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Summary</label>
+        <textarea id="summary" class="form-control" rows="3"></textarea>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Tags (comma separated)</label>
+        <input type="text" id="tags" class="form-control">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Minutes to Read</label>
+        <input type="number" id="minutesRead" class="form-control" min="1">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Author</label>
+        <select id="author" class="form-select" required>
+          <option value="">Loading authors...</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Category</label>
+        <select id="category" class="form-select" required>
+          <option value="">Loading categories...</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Upload Image</label>
+        <input type="file" id="image" class="form-control" accept="image/*">
+      </div>
+
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" id="isFeatured">
+        <label class="form-check-label" for="isFeatured">Mark as Featured</label>
+      </div>
+
+            <button type="submit" class="btn btn-success"><i class="fa fa-save"></i> Save Post</button>
+    </form>
+
+    <!-- Live Preview -->
+    <div class="preview mt-4 p-3 bg-light rounded">
+      <h4>Preview</h4>
+      <p><strong>Title:</strong> <span id="previewTitle">—</span></p>
+      <p><strong>Summary:</strong> <span id="previewSummary">—</span></p>
+      <p><strong>Tags:</strong> <span id="previewTags">—</span></p>
+      <p><strong>Minutes Read:</strong> <span id="previewMinutes">—</span></p>
+      <p><strong>Category:</strong> <span id="previewCategory">—</span></p>
+      <p><strong>Featured:</strong> <span id="previewFeatured">No</span></p>
+      <div><strong>Image Preview:</strong><br /><img id="previewImage" src="" alt=""></div>
+    </div>
+  </div>
+
+  <!-- Notification -->
+  <div id="notification" class="notification"></div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Firebase Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-firestore-compat.js"></script>
+
+  <script>
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAtVvPjdsj84mWqaG4-7SyjbljCnslZ1SM",
+      authDomain: "hendaa-1.firebaseapp.com",
+      projectId: "hendaa-1",
+      storageBucket: "hendaa-1.appspot.com",
+      messagingSenderId: "831134776479",
+      appId: "1:831134776479:web:56cd7098fc69cd70a376aa"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+
+    let authorsMap = {};
+    let currentImageUrl = "";
+
+    // Notification
+    function showNotification(message, type="success") {
+      const notif = document.getElementById("notification");
+      notif.textContent = message;
+      notif.className = `notification ${type}`;
+      notif.style.display = "block";
+      setTimeout(() => notif.style.display = "none", 3000);
+    }
+
+    // Load Authors
+    async function loadAuthors() {
+      const snapshot = await db.collection("authors").get();
+      const select = document.getElementById("author");
+      select.innerHTML = '<option value="">Select Author</option>';
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        authorsMap[doc.id] = data.name;
+        select.innerHTML += `<option value="${doc.id}">${data.name}</option>`;
+      });
+    }
+
+    // Load Categories from Firestore
+    async function loadCategories() {
+      const snapshot = await db.collection("categories").get();
+      const select = document.getElementById("category");
+      select.innerHTML = '<option value="">Select Category</option>';
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        select.innerHTML += `<option value="${data.name}">${data.name}</option>`;
+      });
+    }
+
+    // Preview Updates
+    const updatePreview = () => {
+      document.getElementById("previewTitle").textContent = document.getElementById("title").value || '—';
+      document.getElementById("previewSummary").textContent = document.getElementById("summary").value || '—';
+      document.getElementById("previewTags").textContent = document.getElementById("tags").value || '—';
+      document.getElementById("previewMinutes").textContent = document.getElementById("minutesRead").value || '—';
+      document.getElementById("previewCategory").textContent = document.getElementById("category").value || '—';
+      document.getElementById("previewFeatured").textContent = document.getElementById("isFeatured").checked ? "Yes" : "No";
+      document.getElementById("previewImage").src = currentImageUrl || '';
+    };
+
+    ["title","summary","tags","minutesRead","category","isFeatured"].forEach(id => {
+      document.getElementById(id).addEventListener("input", updatePreview);
+      document.getElementById(id).addEventListener("change", updatePreview);
+    });
+
+    document.getElementById("image").addEventListener("change", e => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = event => {
+          currentImageUrl = event.target.result;
+          updatePreview();
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Submit Form
+    document.getElementById("newsForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const title = document.getElementById("title").value.trim();
+      const content = document.getElementById("content").value.trim();
+      const summary = document.getElementById("summary").value.trim();
+      const tags = document.getElementById("tags").value.split(",").map(t => t.trim().toLowerCase()).filter(Boolean);
+      const minutesRead = parseInt(document.getElementById("minutesRead").value, 10) || 0;
+      const category = document.getElementById("category").value.trim();
+      const authorId = document.getElementById("author").value;
+      const isFeatured = document.getElementById("isFeatured").checked;
+      const imageFile = document.getElementById("image").files[0];
+
+      if (!title || !content || !category || !authorId) {
+        return showNotification("All fields except image are required.", "error");
+      }
+
+      try {
+        let imageUrl = currentImageUrl;
+        if (imageFile) {
+          const imageRef = storage.ref(`newsImages/${Date.now()}_${imageFile.name}`);
+          const uploadTaskSnapshot = await imageRef.put(imageFile);
+          imageUrl = await uploadTaskSnapshot.ref.getDownloadURL();
+        }
+
+        const newDoc = db.collection("newsPosts").doc();
+        await newDoc.set({
+          id: newDoc.id, title, content, summary, tags, minutesRead,
+          category, authorId, isFeatured,
+          timestamp: new Date().toISOString(),
+          views: 0,
+          imageUrl
+        });
+
+        showNotification("Post created successfully.");
+        document.getElementById("newsForm").reset();
+        currentImageUrl = "";
+        updatePreview();
+      } catch (error) {
+        console.error(error);
+        showNotification("Error posting news.", "error");
+      }
+    });
+
+    // Init
+    async function init() {
+      await loadAuthors();
+      await loadCategories();
+    }
+    init();
+  </script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Panel - Authors</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+    .container { max-width: 600px; margin: auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    input, textarea { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ccc; }
+    label { display: block; margin-bottom: 8px; }
+    button { padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 5px; width: 100%; font-size: 16px; }
+    button:hover { background-color: #218838; }
+    .author-list { margin-top: 30px; }
+    .author-item { background: #fff; padding: 15px; margin-bottom: 15px; border-radius: 10px; box-shadow: 0 1px 5px rgba(0,0,0,0.1); }
+    .author-item img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Add Author</h2>
+    <form id="authorForm">
+      <input type="hidden" id="authorId" />
+      <input type="text" id="name" placeholder="Name" required />
+      <input type="text" id="role" placeholder="Role (e.g. Editor, Journalist)" />
+      <textarea id="bio" placeholder="Author Bio" rows="4"></textarea>
+      <input type="file" id="picture" accept="image/*" />
+      <button type="submit">Save Author</button>
+    </form>
+    <div class="author-list" id="authorList"></div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAtVvPjdsj84mWqaG4-7SyjbljCnslZ1SM",
+      authDomain: "hendaa-1.firebaseapp.com",
+      projectId: "hendaa-1",
+      storageBucket: "hendaa-1.appspot.com",
+      messagingSenderId: "831134776479",
+      appId: "1:831134776479:web:56cd7098fc69cd70a376aa"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+
+    document.getElementById("authorForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const id = document.getElementById("authorId").value;
+      const name = document.getElementById("name").value.trim();
+      const role = document.getElementById("role").value.trim();
+      const bio = document.getElementById("bio").value.trim();
+      const pictureFile = document.getElementById("picture").files[0];
+
+      if (!name) return alert("Name is required");
+
+      try {
+        let pictureUrl = "";
+        if (pictureFile) {
+          const imgRef = storage.ref(`authorPics/${Date.now()}_${pictureFile.name}`);
+          const uploadTaskSnapshot = await imgRef.put(pictureFile);
+          pictureUrl = await uploadTaskSnapshot.ref.getDownloadURL();
+        }
+
+        const authorData = { name, role, bio };
+        if (pictureUrl) authorData.pictureUrl = pictureUrl;
+
+        if (id) {
+          await db.collection("authors").doc(id).update(authorData);
+          alert("Author updated.");
+        } else {
+          const newDoc = await db.collection("authors").add(authorData);
+          alert("Author added.");
+        }
+
+        document.getElementById("authorForm").reset();
+        document.getElementById("authorId").value = "";
+        loadAuthors();
+      } catch (error) {
+        console.error("Error saving author:", error);
+        alert("Failed to save author.");
+      }
+    });
+
+    async function loadAuthors() {
+      const listDiv = document.getElementById("authorList");
+      listDiv.innerHTML = "";
+      const snapshot = await db.collection("authors").get();
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const div = document.createElement("div");
+        div.className = "author-item";
+        div.innerHTML = `
+          <img src="${data.pictureUrl || 'https://via.placeholder.com/80'}" alt="${data.name}">
+          <h3>${data.name}</h3>
+          <p><strong>${data.role || ""}</strong></p>
+          <p>${data.bio || ""}</p>
+          <button onclick="editAuthor('${doc.id}', '${data.name}', '${data.role || ""}', \`${data.bio || ""}\`, '${data.pictureUrl || ""}')">Edit</button>
+          <button onclick="deleteAuthor('${doc.id}')">Delete</button>
+        `;
+        listDiv.appendChild(div);
+      });
+    }
+
+    function editAuthor(id, name, role, bio, pictureUrl) {
+      document.getElementById("authorId").value = id;
+      document.getElementById("name").value = name;
+      document.getElementById("role").value = role;
+      document.getElementById("bio").value = bio;
+      // Picture cannot be auto-filled (security), but the existing stays until replaced
+      alert("You can update the fields and save to overwrite this author.");
+    }
+
+    async function deleteAuthor(id) {
+      if (!confirm("Delete this author?")) return;
+      try {
+        await db.collection("authors").doc(id).delete();
+        alert("Author deleted.");
+        loadAuthors();
+      } catch (error) {
+        console.error("Error deleting author:", error);
+        alert("Failed to delete author.");
+      }
+    }
+
+    // Load authors on page ready
+    loadAuthors();
+  </script>
+</body>
+</html>

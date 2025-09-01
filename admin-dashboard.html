@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard</title>
+  <!-- Bootstrap CSS + Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet"/>
+  <style>
+    body { background:#f5f5f5; }
+    .card h2 { font-size:2rem; }
+    .cursor-pointer { cursor:pointer; }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">Admin Dashboard</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNavbar" aria-controls="adminNavbar" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="adminNavbar">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="all-posts.html">Posts</a></li>
+          <li class="nav-item"><a class="nav-link" href="categories.html">Categories</a></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Admin Actions</a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="add-author.html">Add Author</a></li>
+              <li><a class="dropdown-item" href="add-author.html">Add Profile</a></li>
+              <li><a class="dropdown-item" href="#">Settings</a></li>
+              <li><hr class="dropdown-divider"/></li>
+
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Posts Actions</a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="add-post.html">Add Post</a></li>
+              <li><a class="dropdown-item" href="all-posts.html">Edit Post</a></li>
+            </ul>
+          </li>
+        </ul>
+        <!-- (Optional) search or user menu could go here -->
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container mt-5 text-center">
+    <h1>Welcome to Admin Dashboard</h1>
+    <p>Use the navigation bar or buttons below to manage your blog.</p>
+
+    <!-- Quick Actions -->
+    <div class="d-flex justify-content-center mt-4 gap-3 flex-wrap">
+      <a class="btn btn-primary" href="add-post.html"><i class="bi bi-plus-circle me-1"></i>Add Post</a>
+      <a class="btn btn-success" href="categories.html"><i class="bi bi-tags me-1"></i>Manage Categories</a>
+      <a class="btn btn-secondary" href="all-posts.html"><i class="bi bi-list-ul me-1"></i>All Posts</a>
+    </div>
+
+    <!-- Dashboard Cards -->
+    <div class="row mt-5 g-4">
+      <div class="col-md-4">
+        <div class="card text-white bg-primary h-100">
+          <div class="card-body d-flex align-items-center justify-content-between">
+            <div>
+              <h5 class="card-title">Total Posts</h5>
+              <h2 id="totalPosts">0</h2>
+            </div>
+            <i class="bi bi-file-earmark-text" style="font-size:2.5rem;"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card text-white bg-success h-100">
+          <div class="card-body d-flex align-items-center justify-content-between">
+            <div>
+              <h5 class="card-title">Total Categories</h5>
+              <h2 id="totalCategories">0</h2>
+            </div>
+            <i class="bi bi-tags" style="font-size:2.5rem;"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card text-white bg-warning h-100">
+          <div class="card-body d-flex align-items-center justify-content-between">
+            <div>
+              <h5 class="card-title">Total Users</h5>
+              <h2 id="totalUsers">0</h2>
+            </div>
+            <i class="bi bi-people" style="font-size:2.5rem;"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Posts (5 only) -->
+    <div class="mt-5">
+      <h3 class="text-start mb-3">Recent Posts</h3>
+      <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle" id="postsTable">
+          <thead class="table-dark">
+            <tr>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Author</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="text-end mt-2">
+        <a href="all-posts.html" class="btn btn-secondary">View More Posts</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Post Modal -->
+  <div class="modal fade" id="editPostModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <!-- Return to dashboard icon -->
+          <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal" title="Return to Dashboard">
+            <i class="bi bi-arrow-left"></i>
+          </button>
+          <h5 class="modal-title">Edit Post</h5>
+          <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <form id="editPostForm">
+            <input type="hidden" id="editPostId"/>
+
+            <div class="mb-3">
+              <label for="editTitle" class="form-label">Title</label>
+              <input type="text" id="editTitle" class="form-control" required/>
+            </div>
+
+            <div class="mb-3">
+              <label for="editContent" class="form-label">Content</label>
+              <textarea id="editContent" class="form-control" rows="5" required></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label for="editSummary" class="form-label">Summary</label>
+              <textarea id="editSummary" class="form-control" rows="2"></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label for="editTags" class="form-label">Tags (comma separated)</label>
+              <input type="text" id="editTags" class="form-control"/>
+            </div>
+
+            <div class="mb-3">
+              <label for="editMinutes" class="form-label">Minutes Read</label>
+              <input type="number" id="editMinutes" class="form-control" min="1"/>
+            </div>
+
+            <div class="mb-3">
+              <label for="editCategory" class="form-label">Category</label>
+              <select id="editCategory" class="form-select" required>
+                <option value="">Loading categories...</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="editStatus" class="form-label">Status</label>
+              <select id="editStatus" class="form-select">
+                <option value="draft">Draft</option>
+                <option value="published">Publish</option>
+              </select>
+            </div>
+
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" id="editFeatured"/>
+              <label class="form-check-label" for="editFeatured">Featured</label>
+            </div>
+
+            <div class="mb-3">
+              <label for="editImage" class="form-label">Post Image</label>
+              <input type="file" id="editImage" class="form-control" accept="image/*"/>
+            </div>
+          </form>
+        </div>
+
+        <div class="modal-footer d-flex justify-content-between">
+
+          <button class="btn btn-primary" id="savePostBtn"><i class="bi bi-save me-1"></i>Save Changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-storage-compat.js"></script>
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // ==== Firebase Config (update if needed) ====
+    const firebaseConfig = {
+      apiKey: "AIzaSyAtVvPjdsj84mWqaG4-7SyjbljCnslZ1SM",
+      authDomain: "hendaa-1.firebaseapp.com",
+      projectId: "hendaa-1",
+      storageBucket: "hendaa-1.appspot.com",
+      messagingSenderId: "831134776479",
+      appId: "1:831134776479:web:56cd7098fc69cd70a376aa"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+
+    // ===== Dashboard Counts =====
+    async function loadCounts() {
+      const [postsSnap, catSnap, usersSnap] = await Promise.all([
+        db.collection("newsPosts").get(),
+        db.collection("categories").get(),
+        db.collection("users").get()
+      ]);
+      document.getElementById("totalPosts").textContent = postsSnap.size;
+      document.getElementById("totalCategories").textContent = catSnap.size;
+      document.getElementById("totalUsers").textContent = usersSnap.size;
+    }
+
+    // ===== Helpers =====
+    function safeDateString(ts) {
+      if (!ts) return "-";
+      try {
+        if (ts.toDate) return ts.toDate().toLocaleDateString();
+        const d = new Date(ts);
+        if (!isNaN(d)) return d.toLocaleDateString();
+      } catch (_) {}
+      return "-";
+    }
+
+    async function getAuthorName(authorId) {
+      if (!authorId) return "Unknown";
+      try {
+        const doc = await db.collection("authors").doc(authorId).get();
+        return doc.exists ? (doc.data().name || "Unknown") : "Unknown";
+      } catch (_) { return "Unknown"; }
+    }
+
+    async function getCategoryName(catId) {
+      if (!catId) return "-";
+      try {
+        const doc = await db.collection("categories").doc(catId).get();
+        return doc.exists ? (doc.data().name || "-") : "-";
+      } catch (_) { return "-"; }
+    }
+
+    // ===== Recent Posts (limit 5) =====
+    async function loadPosts() {
+      const tbody = document.querySelector("#postsTable tbody");
+      tbody.innerHTML = "";
+
+      const snapshot = await db.collection("newsPosts")
+        .orderBy("timestamp","desc")
+        .limit(5)
+        .get();
+
+      for (const doc of snapshot.docs) {
+        const data = doc.data();
+        const [authorName, categoryName] = await Promise.all([
+          getAuthorName(data.authorId),
+          getCategoryName(data.categoryId)
+        ]);
+
+        const dateStr = safeDateString(data.timestamp);
+        const statusBadge = data.status === "published"
+          ? '<span class="badge bg-success">Published</span>'
+          : '<span class="badge bg-warning text-dark">Draft</span>';
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${data.title || "-"}</td>
+          <td>${categoryName}</td>
+          <td>${authorName}</td>
+          <td>${dateStr}</td>
+          <td>${statusBadge}</td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-primary" onclick="editPost('${doc.id}')">
+              <i class="bi bi-pencil-square"></i>
+            </button>
+            <button class="btn btn-sm btn-danger" onclick="deletePost('${doc.id}')">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    // ===== Edit Modal Logic =====
+    let currentEditPostId = null;
+
+    async function loadCategoriesInto(selectEl, selectedId = "") {
+      const snap = await db.collection("categories").orderBy("name").get();
+      selectEl.innerHTML = '<option value="">Select Category</option>';
+      snap.forEach(d => {
+        const c = d.data();
+        const opt = document.createElement("option");
+        opt.value = d.id;
+        opt.textContent = c.name;
+        if (d.id === selectedId) opt.selected = true;
+        selectEl.appendChild(opt);
+      });
+    }
+
+    // Open modal populated with post data
+    window.editPost = async (id) => {
+      currentEditPostId = id;
+      const doc = await db.collection("newsPosts").doc(id).get();
+      if (!doc.exists) return alert("Post not found.");
+      const data = doc.data();
+
+      document.getElementById("editPostId").value = id;
+      document.getElementById("editTitle").value = data.title || "";
+      document.getElementById("editContent").value = data.content || "";
+      document.getElementById("editSummary").value = data.summary || "";
+      document.getElementById("editTags").value = (data.tags || []).join(", ");
+      document.getElementById("editMinutes").value = data.minutesRead || "";
+      document.getElementById("editStatus").value = data.status || "draft";
+      document.getElementById("editFeatured").checked = !!data.isFeatured;
+
+      await loadCategoriesInto(document.getElementById("editCategory"), data.categoryId || "");
+
+      const modal = new bootstrap.Modal(document.getElementById("editPostModal"));
+      modal.show();
+    };
+
+    // Save changes
+    document.getElementById("savePostBtn").addEventListener("click", async () => {
+      if (!currentEditPostId) return;
+
+      const id = document.getElementById("editPostId").value;
+      const title = document.getElementById("editTitle").value.trim();
+      const content = document.getElementById("editContent").value.trim();
+      const summary = document.getElementById("editSummary").value.trim();
+      const tags = document.getElementById("editTags").value.split(",").map(t => t.trim()).filter(Boolean);
+      const minutesRead = parseInt(document.getElementById("editMinutes").value, 10) || 0;
+      const categoryId = document.getElementById("editCategory").value;
+      const status = document.getElementById("editStatus").value;
+      const isFeatured = document.getElementById("editFeatured").checked;
+      const imageFile = document.getElementById("editImage").files[0];
+
+      if (!title || !content || !categoryId) {
+        alert("Title, content, and category are required.");
+        return;
+      }
+
+      try {
+        // fetch current imageUrl to keep it if no new image selected
+        let imageUrl = "";
+        const postDoc = await db.collection("newsPosts").doc(id).get();
+        if (postDoc.exists) imageUrl = postDoc.data().imageUrl || "";
+
+        if (imageFile) {
+          const imageRef = storage.ref(`newsImages/${Date.now()}_${imageFile.name}`);
+          const uploaded = await imageRef.put(imageFile);
+          imageUrl = await uploaded.ref.getDownloadURL();
+        }
+
+        await db.collection("newsPosts").doc(id).update({
+          title, content, summary, tags, minutesRead,
+          categoryId, status, isFeatured, imageUrl
+        });
+
+        alert("Post updated successfully.");
+        await Promise.all([loadPosts(), loadCounts()]);
+        const modal = bootstrap.Modal.getInstance(document.getElementById("editPostModal"));
+        modal.hide();
+      } catch (err) {
+        console.error(err);
+        alert("Error saving post.");
+      }
+    });
+
+    // Delete post
+    window.deletePost = async (id) => {
+      if (!confirm("Are you sure you want to delete this post?")) return;
+      try {
+        await db.collection("newsPosts").doc(id).delete();
+        alert("Post deleted.");
+        await Promise.all([loadPosts(), loadCounts()]);
+        // If modal was open on the same post, close it
+        if (currentEditPostId === id) {
+          const modal = bootstrap.Modal.getInstance(document.getElementById("editPostModal"));
+          if (modal) modal.hide();
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Error deleting post.");
+      }
+    };
+
+    // ===== Initial Load =====
+    loadCounts();
+    loadPosts();
+  </script>
+</body>
+</html>
